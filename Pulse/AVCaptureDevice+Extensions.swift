@@ -45,31 +45,29 @@ extension AVCaptureDevice {
         }
     }
     
-    func toggleTorch(on: Bool) {
+    func toggleTorch(on: Bool) throws {
         guard hasTorch, isTorchAvailable else {
-            print("Torch is not available")
-            return
+            throw TorchError.torchNotAvailable
         }
-        do {
             try lockForConfiguration()
             torchMode = on ? .on : .off
             unlockForConfiguration()
-        } catch {
-            print("Torch could not be used \(error)")
-        }
     }
 }
 
 extension AVCaptureDevice {
     private func availableFormatsFor(preferredFps: Float64) -> [AVCaptureDevice.Format] {
         var availableFormats: [AVCaptureDevice.Format] = []
-        availableFormats = formats.filter({ (format) -> Bool in
+        availableFormats = formats.filter{ format  in
             let ranges = format.videoSupportedFrameRateRanges
             
-            return ranges.filter { (range) -> Bool in
-               return range.minFrameRate <= preferredFps && preferredFps <= range.maxFrameRate
-            }.count > 0
-        })
+            for range in ranges where range.minFrameRate <= preferredFps
+                && preferredFps <= range.maxFrameRate {
+                return true
+            }
+            
+            return false
+        }
         return availableFormats
     }
     
@@ -105,4 +103,7 @@ extension AVCaptureDevice {
             return dimensions.width >= Int32(preferredSize.width) && dimensions.height >= Int32(preferredSize.height)
         }
     }
+}
+enum TorchError: Error {
+    case torchNotAvailable
 }
