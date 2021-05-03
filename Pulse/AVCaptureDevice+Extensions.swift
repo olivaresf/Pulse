@@ -10,17 +10,9 @@ import Foundation
 import AVFoundation
 
 extension AVCaptureDevice {
+    
     private func availableFormatsFor(preferredFps: Float64) -> [AVCaptureDevice.Format] {
-        var availableFormats: [AVCaptureDevice.Format] = []
-        for format in formats
-        {
-            let ranges = format.videoSupportedFrameRateRanges
-            for range in ranges where range.minFrameRate <= preferredFps && preferredFps <= range.maxFrameRate
-            {
-                availableFormats.append(format)
-            }
-        }
-        return availableFormats
+        return formats.filter { $0.supports(framerate: preferredFps) }
     }
     
     private func formatWithHighestResolution(_ availableFormats: [AVCaptureDevice.Format]) -> AVCaptureDevice.Format? {
@@ -97,4 +89,14 @@ extension AVCaptureDevice {
             print("Torch could not be used \(error)")
         }
     }
+}
+
+extension AVCaptureDevice.Format {
+    
+    func supports(framerate: Float64) -> Bool {
+        return videoSupportedFrameRateRanges.contains {
+            $0.minFrameRate <= framerate && framerate <= $0.maxFrameRate
+        }
+    }
+    
 }
