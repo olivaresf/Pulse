@@ -88,7 +88,30 @@ class PulseViewController: UIViewController {
     
     private func toggleTorch(status: Bool) {
         guard let device = AVCaptureDevice.default(for: .video) else { return }
-        device.toggleTorch(on: status)
+        
+        do {
+            try device.toggleTorch(on: status)
+            
+            print("We are sure that the torch was toggled.")
+            // Would the torch be turned on/off?
+            // If the process for toggling the torch failed, notify the user via a an alert.
+            
+        } catch let error as AVCaptureDevice.ToggleTorchError {
+            // We don't know what type is being sent as an `Error`
+            switch error {
+            case .noTorch, .torchUnavailable:
+            // Show an alert
+            break
+            
+            case .cameraBusy:
+            // Dispaly a modal view controller.
+            break
+            }
+        } catch {
+            print("Hey, you're throwing a common Error. Please use `AVCaptureDevice.ToggleTorchError`")
+        }
+        
+        
     }
     
     // MARK: - Measurement

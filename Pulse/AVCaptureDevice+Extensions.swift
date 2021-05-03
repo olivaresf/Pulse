@@ -84,17 +84,28 @@ extension AVCaptureDevice {
         }
     }
     
-    func toggleTorch(on: Bool) {
-        guard hasTorch, isTorchAvailable else {
-            print("Torch is not available")
-            return
+    enum ToggleTorchError : Error {
+        case noTorch
+        case torchUnavailable
+        case cameraBusy
+    }
+    
+    func toggleTorch(on: Bool) throws {
+        
+        guard hasTorch else {
+            throw ToggleTorchError.noTorch
         }
+        
+        guard hasTorch, isTorchAvailable else {
+            throw ToggleTorchError.torchUnavailable
+        }
+    
         do {
             try lockForConfiguration()
             torchMode = on ? .on : .off
             unlockForConfiguration()
         } catch {
-            print("Torch could not be used \(error)")
+            throw ToggleTorchError.cameraBusy
         }
     }
 }
